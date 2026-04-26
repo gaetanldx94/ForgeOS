@@ -1,7 +1,3 @@
-# ============================================================
-#  ForgeOS — Makefile
-# ============================================================
-
 NASM        := nasm
 GCC         := gcc
 LD          := ld
@@ -29,15 +25,10 @@ LOADER_BIN  := $(BUILD_DIR)/loader.bin
 KERNEL_BIN  := $(BUILD_DIR)/kernel.bin
 OS_IMG      := $(BUILD_DIR)/forgeos.img
 
-# ============================================================
-
 .PHONY: all clean run debug
 
 all: $(OS_IMG)
 
-# ------------------------------------------------------------
-# Image finale
-# ------------------------------------------------------------
 $(OS_IMG): $(BOOTSECTOR) $(ENTRY_BIN) $(LOADER_BIN) $(KERNEL_BIN)
 	@echo "[IMG] Assemblage de l'image..."
 	dd if=/dev/zero of=$@ bs=512 count=4096 2>/dev/null
@@ -47,25 +38,16 @@ $(OS_IMG): $(BOOTSECTOR) $(ENTRY_BIN) $(LOADER_BIN) $(KERNEL_BIN)
 	dd if=$(KERNEL_BIN) of=$@ bs=512 seek=22 conv=notrunc 2>/dev/null
 	@echo "[IMG] forgeos.img prête"
 
-# ------------------------------------------------------------
-# Bootsector
-# ------------------------------------------------------------
 $(BOOTSECTOR): $(BIOS_DIR)/bootsector.asm | $(BUILD_DIR)
 	@echo "[NASM] bootsector..."
 	$(NASM) -f bin $< -o $@
 
-# ------------------------------------------------------------
-# Entry (16 bits pur) — dépend du loader pour récupérer l'adresse
-# ------------------------------------------------------------
 $(ENTRY_BIN): $(LOADER_DIR)/entry.asm $(LOADER_BIN) | $(BUILD_DIR)
 	@echo "[NASM] entry.asm -> bin"
 	$(eval SETUP_GDT_ADDR := 0x$(shell nm $(BUILD_DIR)/loader.elf | grep ' setup_gdt' | awk '{print $$1}'))
 	@echo "  setup_gdt @ $(SETUP_GDT_ADDR)"
 	$(NASM) -f bin -D SETUP_GDT_ADDR=$(SETUP_GDT_ADDR) $(LOADER_DIR)/entry.asm -o $@
 
-# ------------------------------------------------------------
-# Loader — ASM
-# ------------------------------------------------------------
 $(BUILD_DIR)/gdt.o: $(LOADER_DIR)/gdt.asm | $(BUILD_DIR)
 	$(NASM) -f elf64 $< -o $@
 
@@ -78,9 +60,6 @@ $(BUILD_DIR)/paging.o: $(LOADER_DIR)/paging.asm | $(BUILD_DIR)
 $(BUILD_DIR)/longmode.o: $(LOADER_DIR)/longmode.asm | $(BUILD_DIR)
 	$(NASM) -f elf64 $< -o $@
 
-# ------------------------------------------------------------
-# Loader — C
-# ------------------------------------------------------------
 GCC_FLAGS := -ffreestanding -nostdlib -fno-stack-protector \
              -fno-pic -mno-red-zone -mcmodel=kernel
 
@@ -104,32 +83,20 @@ $(BUILD_DIR)/elf.o: $(LOADER_DIR)/elf.c | $(BUILD_DIR)
 	@echo "[GCC] $<"
 	$(GCC) $(GCC_FLAGS) -c $< -o $@
 
-# ------------------------------------------------------------
-# Loader — linkage
-# ------------------------------------------------------------
 $(LOADER_BIN): $(LOADER_OBJS) linker.ld | $(BUILD_DIR)
 	@echo "[LD] Linkage loader..."
 	$(LD) -T linker.ld -o $(BUILD_DIR)/loader.elf $(LOADER_OBJS)
 	objcopy -O binary $(BUILD_DIR)/loader.elf $@
 
-# ------------------------------------------------------------
-# Kernel Rust
-# ------------------------------------------------------------
 $(KERNEL_BIN): | $(BUILD_DIR)
 	@echo "[CARGO] Compilation du kernel..."
 	cd $(KERNEL_DIR) && $(CARGO) build --release
 	cp $(KERNEL_DIR)/target/x86_64-unknown-none/release/kernel $@
 	@echo "[CARGO] Kernel compilé"
 
-# ------------------------------------------------------------
-# Dossier build
-# ------------------------------------------------------------
 $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
 
-# ------------------------------------------------------------
-# QEMU
-# ------------------------------------------------------------
 run: $(OS_IMG)
 	@echo "[QEMU] Démarrage de ForgeOS..."
 	$(QEMU) \
@@ -149,9 +116,6 @@ debug: $(OS_IMG)
 		-no-shutdown \
 		-s -S
 
-# ------------------------------------------------------------
-# Nettoyage
-# ------------------------------------------------------------
 clean:
 	@echo "[CLEAN] Nettoyage..."
 	rm -rf $(BUILD_DIR)
