@@ -6,7 +6,7 @@ extern boot_main
 %include "boot/loader/vga.asm"
 
 enter_long_mode:
-    vga_print msg_lm_start, 320, 0x0E   ; ligne 2 — jaune
+    vga_print msg_lm_start, 320, 0x0E
 
     mov ecx, 0xC0000080
     rdmsr
@@ -29,7 +29,22 @@ long_mode_entry:
     mov fs, ax
     mov gs, ax
 
-    mov rsp, 0x90000
+    mov rsp, 0x500000
+
+    xor rax, rax
+    xor rbx, rbx
+    xor rcx, rcx
+    xor rdx, rdx
+    xor rsi, rsi
+    xor rdi, rdi
+    xor r8,  r8
+    xor r9,  r9
+    xor r10, r10
+    xor r11, r11
+    xor r12, r12
+    xor r13, r13
+    xor r14, r14
+    xor r15, r15
 
     mov rsi, msg_lm_ok
     mov rdi, 0xB8000 + 480

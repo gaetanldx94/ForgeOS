@@ -103,8 +103,7 @@ run: $(OS_IMG)
 		-drive format=raw,file=$(OS_IMG) \
 		-m 128M \
 		-serial stdio \
-		-no-reboot \
-		-no-shutdown
+		-no-reboot
 
 debug: $(OS_IMG)
 	@echo "[QEMU] Mode debug sur port 1234..."
