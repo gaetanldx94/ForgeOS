@@ -1,21 +1,21 @@
-use core::fmt;
 use super::color::{Color, ColorCode};
+use core::fmt;
 
 const VGA_BUFFER: *mut u16 = 0xB8000 as *mut u16;
 pub const VGA_COLS: usize = 80;
 pub const VGA_ROWS: usize = 25;
 
 pub struct VgaWriter {
-    row:   usize,
-    col:   usize,
+    row: usize,
+    col: usize,
     color: ColorCode,
 }
 
 impl VgaWriter {
     pub const fn new() -> Self {
         VgaWriter {
-            row:   0,
-            col:   0,
+            row: 0,
+            col: 0,
             color: ColorCode(0x0F),
         }
     }
@@ -84,6 +84,37 @@ impl VgaWriter {
             }
         }
         self.row = VGA_ROWS - 1;
+    }
+
+    pub fn print_usize(&mut self, val: usize) {
+        if val == 0 {
+            self.print("0");
+            return;
+        }
+        let mut buf = [0u8; 20];
+        let mut i = 20;
+        let mut n = val;
+        while n > 0 {
+            i -= 1;
+            buf[i] = b'0' + (n % 10) as u8;
+            n /= 10;
+        }
+        for &b in &buf[i..] {
+            self.write_byte(b);
+        }
+    }
+
+    pub fn print_hex(&mut self, val: u64) {
+        self.print("0x");
+        for i in (0..16).rev() {
+            let nibble = ((val >> (i * 4)) & 0xF) as u8;
+            let c = if nibble < 10 {
+                b'0' + nibble
+            } else {
+                b'a' + nibble - 10
+            };
+            self.write_byte(c);
+        }
     }
 }
 

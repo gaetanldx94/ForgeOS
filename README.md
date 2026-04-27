@@ -33,10 +33,10 @@ Tout est développé manuellement afin de comprendre pleinement le fonctionnemen
 * Point d’entrée du kernel Rust en `no_std`
 * Affichage texte VGA
 * Gestion mémoire de base
+* Gestion des interruptions (IDT)
 
 ### Objectifs futurs
 
-* Gestion des interruptions (IDT)
 * Système de paging
 * Allocateur de heap
 * Scheduler
