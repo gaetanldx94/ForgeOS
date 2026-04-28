@@ -1,6 +1,7 @@
 pub mod handlers;
 pub mod idt;
 pub mod pic;
+pub mod paging;
 
 use idt::Idt;
 use handlers::*;
@@ -22,7 +23,6 @@ pub unsafe fn init_idt() {
     IDT.set_handler(12, stack_fault_handler            as u64);
     IDT.set_handler(13, general_protection_handler     as u64);
     IDT.set_handler(14, page_fault_handler             as u64);
-
     IDT.load();
 }
 

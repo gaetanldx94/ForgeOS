@@ -12,9 +12,7 @@ use drivers::vga::{Color, VgaWriter};
 
 #[unsafe(no_mangle)]
 pub extern "C" fn kernel_main() -> ! {
-    unsafe {
-        core::arch::asm!("cli", options(nostack, nomem));
-    }
+    unsafe { core::arch::asm!("cli", options(nostack, nomem)); }
 
     let mut w = VgaWriter::new();
     w.clear();
@@ -22,21 +20,48 @@ pub extern "C" fn kernel_main() -> ! {
     w.print("ForgeOS Kernel\n");
     w.print("==============\n");
 
-    unsafe {
-        memory::init();
-    }
+    unsafe { memory::init(); }
     w.set_color(Color::Green, Color::Black);
     w.print("[OK] Memory initialized\n");
 
-    unsafe {
-        arch::x86_64::init();
-    }
-    w.set_color(Color::Green, Color::Black);
+    unsafe { arch::x86_64::init(); }
     w.print("[OK] IDT initialized\n");
 
     unsafe {
-        core::arch::asm!("sti", options(nostack, nomem));
+        let mut mapper = arch::x86_64::paging::Mapper::from_cr3();
+
+        let vga_phys = mapper.translate(0xB8000);
+        w.set_color(Color::White, Color::Black);
+        w.print("     VGA 0xB8000 -> 0x");
+        if let Some(p) = vga_phys {
+            w.print_hex(p);
+        } else {
+            w.print("NOT MAPPED");
+        }
+        w.print("\n");
+
+        let frame = memory::alloc_frame().unwrap();
+        let test_vaddr = 0x400000u64;
+        mapper.map(
+            test_vaddr,
+            frame,
+            arch::x86_64::paging::PageFlags::PRESENT |
+            arch::x86_64::paging::PageFlags::WRITABLE,
+        );
+
+        let ptr = test_vaddr as *mut u64;
+        *ptr = 0xDEADBEEF;
+        let val = *ptr;
+
+        w.set_color(Color::Green, Color::Black);
+        w.print("[OK] Paging initialized\n");
+        w.set_color(Color::White, Color::Black);
+        w.print("     Test write/read : 0x");
+        w.print_hex(val);
+        w.print("\n");
     }
+
+    unsafe { core::arch::asm!("sti", options(nostack, nomem)); }
     w.set_color(Color::Green, Color::Black);
     w.print("[OK] Interrupts enabled\n");
 
@@ -44,9 +69,7 @@ pub extern "C" fn kernel_main() -> ! {
     w.print("ForgeOS ready.\n");
 
     loop {
-        unsafe {
-            core::arch::asm!("hlt");
-        }
+        unsafe { core::arch::asm!("hlt"); }
     }
 }
 
