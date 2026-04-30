@@ -201,3 +201,13 @@ fn panic_exception(name: &str, frame: &InterruptFrame, _error: Option<u64>) {
         core::arch::asm!("2: jmp 2b", options(nostack, nomem, noreturn));
     }
 }
+
+handler!(timer_handler, timer_inner);
+
+#[no_mangle]
+extern "C" fn timer_inner(_frame: &InterruptFrame) {
+    unsafe {
+        super::pic::eoi(0);
+        crate::process::schedule();
+    }
+}

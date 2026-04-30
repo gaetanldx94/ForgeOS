@@ -24,7 +24,7 @@ Tout est développé manuellement afin de comprendre pleinement le fonctionnemen
 
 ## Objectifs du projet
 
-### Objectifs actuels
+### Objectifs atteints
 
 * Boot sector BIOS personnalisé
 * Bootloader personnalisé (Assembly + C)
@@ -34,12 +34,12 @@ Tout est développé manuellement afin de comprendre pleinement le fonctionnemen
 * Affichage texte VGA
 * Gestion mémoire de base
 * Gestion des interruptions (IDT)
-
-### Objectifs futurs
-
 * Système de paging
 * Allocateur de heap
 * Scheduler
+
+### Objectifs futurs
+
 * Gestion des processus
 * Système de fichiers
 * Drivers

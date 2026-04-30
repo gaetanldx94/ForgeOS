@@ -23,6 +23,7 @@ pub unsafe fn init_idt() {
     IDT.set_handler(12, stack_fault_handler            as u64);
     IDT.set_handler(13, general_protection_handler     as u64);
     IDT.set_handler(14, page_fault_handler             as u64);
+    IDT.set_handler(32, timer_handler                  as u64);
     IDT.load();
 }
 
@@ -30,4 +31,6 @@ pub unsafe fn init() {
     pic::remap();
     pic::disable();
     init_idt();
+    pic::init_pit(11932);   // ~100 Hz
+    pic::enable_timer();
 }

@@ -64,3 +64,15 @@ pub unsafe fn eoi(irq: u8) {
     }
     outb(PIC1_CMD, 0x20);
 }
+
+/// frequency = 1193182 / divisor Hz
+pub unsafe fn init_pit(divisor: u16) {
+    outb(0x43, 0x36);
+    outb(0x40, (divisor & 0xFF) as u8);
+    outb(0x40, (divisor >> 8) as u8);
+}
+
+pub unsafe fn enable_timer() {
+    let mask = inb(PIC1_DATA);
+    outb(PIC1_DATA, mask & !1);
+}
